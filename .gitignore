@@ -168,3 +168,5 @@ cython_debug/
 
 # Data
 01_MUFAC/custom_korean_family_dataset_resolution_128/
+*data/
+*.DS_Store
