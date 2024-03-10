@@ -34,7 +34,7 @@ def sweep(score, x):
     fpr, tpr, _ = metrics.roc_curve(x, -score)
     fnr = 1 - tpr
     tnr = 1 - fpr
-    return fnr, tnr
+    return fnr, tnr, metrics.auc(fnr, tnr)
 
 
 def lira_offline(target_scores: np.ndarray, shadow_scores: np.ndarray, labels: np.ndarray,
@@ -56,7 +56,7 @@ def lira_offline(target_scores: np.ndarray, shadow_scores: np.ndarray, labels: n
     score = scipy.stats.norm.logpdf(target_scores, mean_out, std_out+1e-30)
     predictions = np.array(score.mean(1))
 
-    fnr, tnr = sweep(np.array(predictions), labels.astype(bool))
+    fnr, tnr, auc = sweep(np.array(predictions), labels.astype(bool))
     low = tnr[np.where(fnr<0.01)[0][-1]]
 
-    return fnr, tnr, low
+    return fnr, tnr, auc, low
