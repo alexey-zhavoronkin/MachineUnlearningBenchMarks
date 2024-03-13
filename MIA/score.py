@@ -60,3 +60,39 @@ def lira_offline(target_scores: np.ndarray, shadow_scores: np.ndarray, labels: n
     low = tnr[np.where(fnr<0.01)[0][-1]]
 
     return fnr, tnr, auc, low
+
+def lira_online(target_scores: np.ndarray, shadow_scores: np.ndarray, labels: np.ndarray, in_datasets_list,
+                 fix_variance: bool = False):
+    """Score offline using LiRA approach.
+
+    target_scores: [n_examples, n_aug]
+    shadow_scores: [n_examples, n_shadow, n_aug]
+    labels: [n_examples]    
+    """
+
+    predictions = []
+
+    for i, in_datasets in enumerate(in_datasets_list):
+        mask_in = np.full(shadow_scores.shape[1], False)
+        mask_in[in_datasets] = True
+        in_shadow_scores = shadow_scores[i, mask_in]
+        out_shadow_scores = shadow_scores[i, ~mask_in]
+        mean_in = np.median(in_shadow_scores, 0)
+        mean_out = np.median(out_shadow_scores, 0)
+
+        if fix_variance:
+            std_in = np.std(in_shadow_scores)
+            std_out = np.std(out_shadow_scores)
+        else:
+            std_in = np.std(in_shadow_scores, 0)
+            std_out = np.std(out_shadow_scores, 0)
+
+        pr_in = -scipy.stats.norm.logpdf(target_scores[i], mean_in, std_in+1e-30)
+        pr_out = -scipy.stats.norm.logpdf(target_scores[i], mean_out, std_out+1e-30)
+        score = pr_in-pr_out
+        predictions.append(score.mean(1))
+
+    fnr, tnr, auc = sweep(np.array(predictions), labels.astype(bool))
+    low = tnr[np.where(fnr<0.01)[0][-1]]
+
+    return fnr, tnr, auc, low
