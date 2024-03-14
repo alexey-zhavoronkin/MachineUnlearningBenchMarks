@@ -90,9 +90,9 @@ def lira_online(target_scores: np.ndarray, shadow_scores: np.ndarray, labels: np
         pr_in = -scipy.stats.norm.logpdf(target_scores[i], mean_in, std_in+1e-30)
         pr_out = -scipy.stats.norm.logpdf(target_scores[i], mean_out, std_out+1e-30)
         score = pr_in-pr_out
-        predictions.append(score.mean(1))
+        predictions.append(score.mean())
 
     fnr, tnr, auc = sweep(np.array(predictions), labels.astype(bool))
-    low = tnr[np.where(fnr<0.01)[0][-1]]
+    low = np.max(tnr[np.where(fnr<0.01)[0]])
 
     return fnr, tnr, auc, low
