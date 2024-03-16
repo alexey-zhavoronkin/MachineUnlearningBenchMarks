@@ -61,7 +61,7 @@ def lira_offline(target_scores: np.ndarray, shadow_scores: np.ndarray, labels: n
 
     return fnr, tnr, auc, low
 
-def lira_online(target_scores: np.ndarray, shadow_scores: np.ndarray, labels: np.ndarray, in_datasets_list,
+def lira_online(target_scores: np.ndarray, shadow_scores: np.ndarray, labels: np.ndarray, masks_in,
                  fix_variance: bool = False):
     """Score offline using LiRA approach.
 
@@ -72,9 +72,7 @@ def lira_online(target_scores: np.ndarray, shadow_scores: np.ndarray, labels: np
 
     predictions = []
 
-    for i, in_datasets in enumerate(in_datasets_list):
-        mask_in = np.full(shadow_scores.shape[1], False)
-        mask_in[in_datasets] = True
+    for i, mask_in in enumerate(masks_in):
         in_shadow_scores = shadow_scores[i, mask_in]
         out_shadow_scores = shadow_scores[i, ~mask_in]
         mean_in = np.median(in_shadow_scores, 0)

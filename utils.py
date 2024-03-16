@@ -6,17 +6,17 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
-def init_model():
+def init_model(num_classes):
 
     net = models.resnet18(weights=None)
     num_features = net.fc.in_features
-    net.fc = nn.Linear(num_features, 8)
+    net.fc = nn.Linear(num_features, num_classes)
 
     return net
 
-def load_model(state_dict_path):
+def load_model(state_dict_path, num_classes):
     
-    net = init_model()
+    net = init_model(num_classes)
     net.load_state_dict(torch.load(state_dict_path, map_location='cpu'))
     net.eval()
 
